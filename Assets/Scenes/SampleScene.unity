@@ -265,6 +265,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 793dc2ba863f3b94783d8ae7b04ddb78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tileSize: 1
+  blackPrefabs:
+  - {fileID: 2366774805957756215, guid: 19311fa51fbc8e643b3f6a463a567511, type: 3}
+  - {fileID: 7998408469610969096, guid: 46dc3aca9adb45147a73dc78426eb05d, type: 3}
+  - {fileID: 7009314240839638962, guid: 21dff5b115205cc49b42f676e39b67a6, type: 3}
+  - {fileID: 2694447487841859737, guid: 97d8c89779da95c4194db84404c030b0, type: 3}
+  - {fileID: 7077316198722119176, guid: d3944a346efc77d4da1a4090b7ecddc3, type: 3}
+  - {fileID: 4369695388586780206, guid: 7ff16fff2cc22ec4e96fc1ee801315b4, type: 3}
+  - {fileID: 1755543990959768146, guid: 74a481ecd4419c944aee6a8e6345a66a, type: 3}
+  redPrefabs:
+  - {fileID: 7234782787296891962, guid: 921f05a113445884c8b46c3aaa1da6db, type: 3}
+  - {fileID: 8311763676353086320, guid: 48e6b818cdb67674484d76c813138a73, type: 3}
+  - {fileID: 9123127383458563754, guid: 1baf7ad4a50e19b4a9426d93de1f1bd0, type: 3}
+  - {fileID: 8411651498942771707, guid: 6283eee61b9f86743ba3954a96befb51, type: 3}
+  - {fileID: 6436040070664163864, guid: 49d331e18a6bccc4a89bbad78bea1c8b, type: 3}
+  - {fileID: 7880531697768110991, guid: a2229dce487ef1f4e9e216b9eea91cea, type: 3}
+  - {fileID: 3220918051663431818, guid: cc111fe8d8eb70d4ab0ec62d9df7fc25, type: 3}
 --- !u!4 &1253833657
 Transform:
   m_ObjectHideFlags: 0
