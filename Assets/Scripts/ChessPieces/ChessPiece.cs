@@ -19,4 +19,14 @@ public class ChessPiece : MonoBehaviour
 
     public Vector3 desiredPosition;
     public Vector3 desiredScale;
+    public Sprite defaultSprite;
+    public Sprite selectedSprite;
+
+    public void SelectPiece(){
+        GetComponent<SpriteRenderer>().sprite = selectedSprite;
+    }
+
+    public void UnselectPiece(){
+        GetComponent<SpriteRenderer>().sprite = defaultSprite;
+    }
 }

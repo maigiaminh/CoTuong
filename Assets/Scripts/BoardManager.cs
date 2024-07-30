@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml.Serialization;
-using Unity.Collections;
+using System;
 using UnityEngine;
 
 public class BoardManager : MonoBehaviour
@@ -13,7 +10,11 @@ public class BoardManager : MonoBehaviour
     private const int BOARD_COLUMNS = 9;
     private GameObject[,] board;
     private ChessPiece[,] chessPieces;
-
+    
+    //Logic
+    private ChessPiece currentChooseCP;
+    private Vector2Int currentChoosePos;
+    private Camera currentCamera;
     //Prefabs
     [Header("Chess Pieces Prefabs")]
     [SerializeField] private GameObject[] blackPrefabs;
@@ -21,9 +22,123 @@ public class BoardManager : MonoBehaviour
 
     private void Awake() {
         board = new GameObject[BOARD_ROWS, BOARD_COLUMNS];
+
+        tileSize = CalculateTileSize(Screen.width, Screen.height);
+
         InitializeBoard(tileSize, BOARD_ROWS, BOARD_COLUMNS);
         SpawnAllPieces();
-        PotionAllPieces();
+        PositionAllPieces();
+        PositionBoard();
+    }
+
+    private void PositionBoard()
+    {
+        Vector2 boardSize = CalculateBoardSize(board[0, 0]);
+        Camera mainCamera = Camera.main;
+
+        Vector3 screenCenterWorldPosition = mainCamera.ScreenToWorldPoint(
+            new Vector3(
+                    (Screen.width / 2) - (boardSize.x / 2),
+                    (Screen.height / 2) - (boardSize.y / 2), 
+                    mainCamera.nearClipPlane
+                )
+            );
+
+        screenCenterWorldPosition.z = transform.position.z;
+
+        transform.position = screenCenterWorldPosition;
+
+        Debug.Log("Board moved to: " + transform.position);
+    }
+
+    private Vector2 CalculateBoardSize(GameObject gameObject)
+    {
+        BoxCollider2D boxCollider = gameObject.GetComponent<BoxCollider2D>();
+        if (boxCollider != null)
+        {
+            Vector2 worldSize = boxCollider.size;
+            worldSize.x *= transform.localScale.x;
+            worldSize.y *= transform.localScale.y;
+            
+            Vector2 pixelSize = WorldToPixelSize(worldSize);
+
+            return new Vector2(pixelSize.x * 9, pixelSize.y * 10);
+        }
+        else
+        {
+            Debug.LogError("No BoxCollider2D found on the object.");
+            return Vector2.zero;
+        }
+    }
+
+    Vector2 WorldToPixelSize(Vector2 worldSize)
+    {
+        Camera mainCamera = Camera.main;
+
+        float ppu = mainCamera.pixelHeight / (2f * mainCamera.orthographicSize); //Pixel per units
+
+        float pixelWidth = worldSize.x * ppu;
+        float pixelHeight = worldSize.y * ppu;
+
+        return new Vector2(pixelWidth, pixelHeight);
+    }
+    private void Update() {
+        if(currentCamera == null){
+            currentCamera = Camera.current;
+            return;
+        }
+
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+        {
+            Touch touch = Input.GetTouch(0);
+            Vector2 touchPosition = Camera.main.ScreenToWorldPoint(touch.position);
+            Debug.Log(touchPosition);
+            Debug.DrawRay(touchPosition, Vector2.zero, Color.red, 1.0f);
+            RaycastHit2D hit = Physics2D.Raycast(touchPosition, Vector2.zero);
+            Debug.Log(hit.collider);
+            if (hit.transform != null)
+            {
+                Debug.Log("TEST");
+                GameObject touchedObject = hit.transform.gameObject;
+                Vector2Int hitPosition = FindTileIndex(touchedObject);
+                
+                if(currentChoosePos == -Vector2.one){
+                    currentChoosePos = hitPosition;
+                }
+
+                if(currentChoosePos != hitPosition){
+                    currentChoosePos = hitPosition;
+                    Debug.Log(currentChoosePos);
+                }
+                
+                if(currentChooseCP != null && chessPieces[hitPosition.x, hitPosition.y] == null){
+                    //bool validMove = MoveTo(currentChooseCP, hitPosition.x, hitPosition.y);
+                    currentChooseCP.UnselectPiece();
+                    currentChooseCP = null;
+                    return;
+                }
+
+                if(chessPieces[hitPosition.x, hitPosition.y] != null){
+                    currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
+                    currentChooseCP.SelectPiece();
+                }
+                else{
+                    currentChooseCP = null;
+                }
+            }
+            else{
+                Debug.Log("RAY CAST FAIL");
+                if(currentChoosePos != -Vector2.zero){
+                    currentChooseCP = null;
+                    currentChoosePos = -Vector2Int.one;
+                }
+            }
+        }    
+    }
+
+    private float CalculateTileSize(int width, int height)
+    {
+        return (float) width / height;
     }
 
     private void InitializeBoard(float tileSize, float rows, float columns)
@@ -32,8 +147,8 @@ public class BoardManager : MonoBehaviour
         {
             for (int col = 0; col < columns; col++)
             {
-                GameObject tile = new GameObject($"Tile:{col}-{row}");
-                tile.transform.parent = this.transform;
+                GameObject tile = new GameObject($"Tile:{row}-{col}");
+                tile.transform.parent = transform;
                 board[row, col] = tile;
 
                 Mesh mesh = new Mesh();
@@ -50,6 +165,7 @@ public class BoardManager : MonoBehaviour
                 mesh.vertices = vertices;
                 mesh.triangles = tris;
 
+                tile.layer = LayerMask.NameToLayer("Tile");
                 tile.AddComponent<BoxCollider2D>(); 
             }
         }
@@ -65,7 +181,6 @@ public class BoardManager : MonoBehaviour
         else{
             cp = Instantiate(redPrefabs[(int) type - 1], transform).GetComponent<ChessPiece>();
         }
-        
 
         cp.type = type;
         cp.team = team;
@@ -122,7 +237,7 @@ public class BoardManager : MonoBehaviour
     }
 
     //Position All Pieces
-    private void PotionAllPieces(){
+    private void PositionAllPieces(){
         for (int row = 0; row < BOARD_ROWS; row++){
             for (int col = 0; col < BOARD_COLUMNS; col++){
                 if(chessPieces[row, col] != null){
@@ -132,9 +247,40 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+    //Position Single Piece
     private void PositionSinglePiece(int row, int col, bool force = false){
         chessPieces[row, col].currentX = col;
         chessPieces[row, col].currentY = row;
         chessPieces[row, col].transform.position = new Vector3(col * tileSize, row * tileSize) + new Vector3(tileSize / 2, tileSize / 2);
+    }
+
+    //Operations
+    private Vector2Int FindTileIndex(GameObject hitInfo){
+        for(int row = 0; row < BOARD_ROWS; row++){
+            for(int col = 0; col < BOARD_COLUMNS; col++){
+                if(board[row, col] == hitInfo){
+                    return new Vector2Int(row, col);
+                }
+            }
+        }
+
+        return -Vector2Int.one;
+    }
+    private bool MoveTo(ChessPiece cp, int row, int col){
+        Vector2Int previousPos = new Vector2Int(cp.currentX, cp.currentY);
+
+        if(chessPieces[row, col] != null){
+            ChessPiece ocp = chessPieces[row, col];
+            
+            if(cp.team == ocp.team){
+                return false;
+            }
+        }
+        
+        chessPieces[row, col] = cp;
+        chessPieces[previousPos.x, previousPos.y] = null;
+
+        PositionSinglePiece(row, col);
+        return true;
     }
 }

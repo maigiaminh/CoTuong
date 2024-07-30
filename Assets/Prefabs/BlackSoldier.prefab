@@ -103,3 +103,5 @@ MonoBehaviour:
   type: 0
   desiredPosition: {x: 0, y: 0, z: 0}
   desiredScale: {x: 0, y: 0, z: 0}
+  defaultSprite: {fileID: 21300000, guid: e209d705647bae044b664333599e448a, type: 3}
+  selectedSprite: {fileID: 21300000, guid: 928ebde2729cfe442ba98b307b032a95, type: 3}
