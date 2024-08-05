@@ -26,9 +26,9 @@ public class BoardManager : MonoBehaviour
         tileSize = CalculateTileSize(Screen.width, Screen.height);
 
         InitializeBoard(tileSize, BOARD_ROWS, BOARD_COLUMNS);
+        PositionBoard();
         SpawnAllPieces();
         PositionAllPieces();
-        PositionBoard();
     }
 
     private void PositionBoard()
@@ -112,7 +112,8 @@ public class BoardManager : MonoBehaviour
                 }
                 
                 if(currentChooseCP != null && chessPieces[hitPosition.x, hitPosition.y] == null){
-                    //bool validMove = MoveTo(currentChooseCP, hitPosition.x, hitPosition.y);
+                    bool validMove = MoveTo(currentChooseCP, hitPosition.x, hitPosition.y);
+                    //currentChooseCP.SetPostion(hitPosition.x, hitPosition.y)
                     currentChooseCP.UnselectPiece();
                     currentChooseCP = null;
                     return;
@@ -184,7 +185,7 @@ public class BoardManager : MonoBehaviour
 
         cp.type = type;
         cp.team = team;
-        cp.transform.localScale *= tileSize;
+        cp.SetScale(new Vector3(tileSize, tileSize, tileSize), true);
 
         return cp;
     }
@@ -251,7 +252,8 @@ public class BoardManager : MonoBehaviour
     private void PositionSinglePiece(int row, int col, bool force = false){
         chessPieces[row, col].currentX = col;
         chessPieces[row, col].currentY = row;
-        chessPieces[row, col].transform.position = new Vector3(col * tileSize, row * tileSize) + new Vector3(tileSize / 2, tileSize / 2);
+        Vector3 pos = new Vector3(col * tileSize, row * tileSize) + new Vector3(tileSize / 2, tileSize / 2) + transform.position;
+        chessPieces[row, col].SetPostion(pos, force);
     }
 
     //Operations

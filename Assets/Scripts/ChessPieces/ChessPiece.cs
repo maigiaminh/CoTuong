@@ -16,11 +16,16 @@ public class ChessPiece : MonoBehaviour
     public int currentX;
     public int currentY;
     public ChessPieceType type;
-
-    public Vector3 desiredPosition;
-    public Vector3 desiredScale;
     public Sprite defaultSprite;
     public Sprite selectedSprite;
+
+    public Vector3 desiredPosition = Vector3.zero;
+    private Vector3 desiredScale = Vector3.zero;
+
+    private void Update(){
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * 10);
+        transform.localScale = Vector3.Lerp(transform.localScale, desiredScale, Time.deltaTime * 10);
+    }
 
     public void SelectPiece(){
         GetComponent<SpriteRenderer>().sprite = selectedSprite;
@@ -28,5 +33,21 @@ public class ChessPiece : MonoBehaviour
 
     public void UnselectPiece(){
         GetComponent<SpriteRenderer>().sprite = defaultSprite;
+    }
+
+    public virtual void SetPostion(Vector3 postion, bool force = false){
+        desiredPosition = postion;
+
+        if(force){
+            transform.position = desiredPosition;
+        }
+    }
+
+    public virtual void SetScale(Vector3 scale, bool force = false){
+        desiredScale = scale;
+        
+        if(force){
+            transform.localScale = desiredScale;
+        }
     }
 }
