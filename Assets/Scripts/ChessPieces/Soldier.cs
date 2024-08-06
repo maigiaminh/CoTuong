@@ -16,7 +16,9 @@ public class Soldier : ChessPiece
 
             //Possible Kill Moves
             if(board[currentX, currentY + direction] != null){
-                moves.Add(new Vector2Int(currentX, currentY + direction));
+                if(board[currentX, currentY + direction].team != team){
+                    moves.Add(new Vector2Int(currentX, currentY + direction));
+                }
             }
         }
         
