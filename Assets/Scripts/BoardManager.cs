@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardManager : MonoBehaviour
@@ -6,26 +7,30 @@ public class BoardManager : MonoBehaviour
     //Board
     [Header("Board Properties")]
     [SerializeField] private float tileSize = 1.0f;
-    private const int BOARD_ROWS = 10;
-    private const int BOARD_COLUMNS = 9;
+    private const int BOARD_X = 9;
+    private const int BOARD_Y = 10;
+    private const int BLACK_ID = 0;
+    private const int RED_ID = 1;
     private GameObject[,] board;
     private ChessPiece[,] chessPieces;
     
     //Logic
     private ChessPiece currentChooseCP;
-    private Vector2Int currentChoosePos;
     private Camera currentCamera;
+    private List<ChessPiece> deadBlacks = new List<ChessPiece>();
+    private List<ChessPiece> deadReds = new List<ChessPiece>();
+
     //Prefabs
     [Header("Chess Pieces Prefabs")]
     [SerializeField] private GameObject[] blackPrefabs;
     [SerializeField] private GameObject[] redPrefabs;
 
     private void Awake() {
-        board = new GameObject[BOARD_ROWS, BOARD_COLUMNS];
+        board = new GameObject[BOARD_X, BOARD_Y];
 
         tileSize = CalculateTileSize(Screen.width, Screen.height);
 
-        InitializeBoard(tileSize, BOARD_ROWS, BOARD_COLUMNS);
+        InitializeBoard(tileSize, BOARD_X, BOARD_Y);
         PositionBoard();
         SpawnAllPieces();
         PositionAllPieces();
@@ -92,47 +97,30 @@ public class BoardManager : MonoBehaviour
         {
             Touch touch = Input.GetTouch(0);
             Vector2 touchPosition = Camera.main.ScreenToWorldPoint(touch.position);
-            Debug.Log(touchPosition);
-            Debug.DrawRay(touchPosition, Vector2.zero, Color.red, 1.0f);
             RaycastHit2D hit = Physics2D.Raycast(touchPosition, Vector2.zero);
-            Debug.Log(hit.collider);
             if (hit.transform != null)
             {
-                Debug.Log("TEST");
                 GameObject touchedObject = hit.transform.gameObject;
                 Vector2Int hitPosition = FindTileIndex(touchedObject);
-                
-                if(currentChoosePos == -Vector2.one){
-                    currentChoosePos = hitPosition;
-                }
-
-                if(currentChoosePos != hitPosition){
-                    currentChoosePos = hitPosition;
-                    Debug.Log(currentChoosePos);
-                }
-                
-                if(currentChooseCP != null && chessPieces[hitPosition.x, hitPosition.y] == null){
+                if(currentChooseCP != null){
                     bool validMove = MoveTo(currentChooseCP, hitPosition.x, hitPosition.y);
-                    //currentChooseCP.SetPostion(hitPosition.x, hitPosition.y)
-                    currentChooseCP.UnselectPiece();
-                    currentChooseCP = null;
+                    if(validMove){
+                        currentChooseCP.UnselectPiece();
+                        currentChooseCP = null;
+                    }
+                    
                     return;
                 }
-
-                if(chessPieces[hitPosition.x, hitPosition.y] != null){
-                    currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
-                    currentChooseCP.SelectPiece();
-                }
                 else{
-                    currentChooseCP = null;
+                    if(chessPieces[hitPosition.x, hitPosition.y] != null){
+                        currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
+                        currentChooseCP.SelectPiece();
+                    }
                 }
             }
             else{
                 Debug.Log("RAY CAST FAIL");
-                if(currentChoosePos != -Vector2.zero){
-                    currentChooseCP = null;
-                    currentChoosePos = -Vector2Int.one;
-                }
+                currentChooseCP = null;
             }
         }    
     }
@@ -142,25 +130,25 @@ public class BoardManager : MonoBehaviour
         return (float) width / height;
     }
 
-    private void InitializeBoard(float tileSize, float rows, float columns)
+    private void InitializeBoard(float tileSize, float xboard, float yboard)
     {
-        for (int row = 0; row < rows; row++)
+        for (int x = 0; x < xboard; x++)
         {
-            for (int col = 0; col < columns; col++)
+            for (int y = 0; y < yboard; y++)
             {
-                GameObject tile = new GameObject($"Tile:{row}-{col}");
+                GameObject tile = new GameObject($"Tile:{x}-{y}");
                 tile.transform.parent = transform;
-                board[row, col] = tile;
+                board[x, y] = tile;
 
                 Mesh mesh = new Mesh();
                 tile.AddComponent<MeshFilter>().mesh = mesh;
                 tile.AddComponent<MeshRenderer>();
 
                 Vector3[] vertices = new Vector3[4];
-                vertices[0] = new Vector3(col * tileSize, row * tileSize);
-                vertices[1] = new Vector3(col * tileSize, (row + 1)  * tileSize);
-                vertices[2] = new Vector3((col + 1) * tileSize, row * tileSize);
-                vertices[3] = new Vector3((col + 1) * tileSize, (row + 1) * tileSize);
+                vertices[0] = new Vector3(x * tileSize, y * tileSize);
+                vertices[1] = new Vector3(x * tileSize, (y + 1)  * tileSize);
+                vertices[2] = new Vector3((x + 1) * tileSize, y * tileSize);
+                vertices[3] = new Vector3((x + 1) * tileSize, (y + 1) * tileSize);
 
                 int[] tris = new int[] { 0, 1, 3, 2, 0, 3};
                 mesh.vertices = vertices;
@@ -192,97 +180,113 @@ public class BoardManager : MonoBehaviour
 
     //Spawn All Pieces
     private void SpawnAllPieces(){
-        chessPieces = new ChessPiece[BOARD_ROWS, BOARD_COLUMNS];
-        int blackTeam = 0;
-        int redTeam = 1;
+        chessPieces = new ChessPiece[BOARD_X, BOARD_Y];
 
         //Black Team
-        chessPieces[0, 0] = SpawnSinglePiece(ChessPieceType.Chariot, blackTeam);
-        chessPieces[0, 1] = SpawnSinglePiece(ChessPieceType.Horse, blackTeam);
-        chessPieces[0, 2] = SpawnSinglePiece(ChessPieceType.Elephant, blackTeam);
-        chessPieces[0, 3] = SpawnSinglePiece(ChessPieceType.Advisor, blackTeam);
-        chessPieces[0, 4] = SpawnSinglePiece(ChessPieceType.General, blackTeam);
-        chessPieces[0, 5] = SpawnSinglePiece(ChessPieceType.Advisor, blackTeam);
-        chessPieces[0, 6] = SpawnSinglePiece(ChessPieceType.Elephant, blackTeam);
-        chessPieces[0, 7] = SpawnSinglePiece(ChessPieceType.Horse, blackTeam);
-        chessPieces[0, 8] = SpawnSinglePiece(ChessPieceType.Chariot, blackTeam);
+        chessPieces[0, 0] = SpawnSinglePiece(ChessPieceType.Chariot, BLACK_ID);
+        chessPieces[1, 0] = SpawnSinglePiece(ChessPieceType.Horse, BLACK_ID);
+        chessPieces[2, 0] = SpawnSinglePiece(ChessPieceType.Elephant, BLACK_ID);
+        chessPieces[3, 0] = SpawnSinglePiece(ChessPieceType.Advisor, BLACK_ID);
+        chessPieces[4, 0] = SpawnSinglePiece(ChessPieceType.General, BLACK_ID);
+        chessPieces[5, 0] = SpawnSinglePiece(ChessPieceType.Advisor, BLACK_ID);
+        chessPieces[6, 0] = SpawnSinglePiece(ChessPieceType.Elephant, BLACK_ID);
+        chessPieces[7, 0] = SpawnSinglePiece(ChessPieceType.Horse, BLACK_ID);
+        chessPieces[8, 0] = SpawnSinglePiece(ChessPieceType.Chariot, BLACK_ID);
 
-        chessPieces[2, 1] = SpawnSinglePiece(ChessPieceType.Cannon, blackTeam);
-        chessPieces[2, 7] = SpawnSinglePiece(ChessPieceType.Cannon, blackTeam);
+        chessPieces[1, 2] = SpawnSinglePiece(ChessPieceType.Cannon, BLACK_ID);
+        chessPieces[7, 2] = SpawnSinglePiece(ChessPieceType.Cannon, BLACK_ID);
 
-        chessPieces[3, 0] = SpawnSinglePiece(ChessPieceType.Soldier, blackTeam);
-        chessPieces[3, 2] = SpawnSinglePiece(ChessPieceType.Soldier, blackTeam);
-        chessPieces[3, 4] = SpawnSinglePiece(ChessPieceType.Soldier, blackTeam);
-        chessPieces[3, 6] = SpawnSinglePiece(ChessPieceType.Soldier, blackTeam);
-        chessPieces[3, 8] = SpawnSinglePiece(ChessPieceType.Soldier, blackTeam);
+        chessPieces[0, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
+        chessPieces[2, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
+        chessPieces[4, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
+        chessPieces[6, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
+        chessPieces[8, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
 
         //Red Team
-        chessPieces[9, 0] = SpawnSinglePiece(ChessPieceType.Chariot, redTeam);
-        chessPieces[9, 1] = SpawnSinglePiece(ChessPieceType.Horse, redTeam);
-        chessPieces[9, 2] = SpawnSinglePiece(ChessPieceType.Elephant, redTeam);
-        chessPieces[9, 3] = SpawnSinglePiece(ChessPieceType.Advisor, redTeam);
-        chessPieces[9, 4] = SpawnSinglePiece(ChessPieceType.General, redTeam);
-        chessPieces[9, 5] = SpawnSinglePiece(ChessPieceType.Advisor, redTeam);
-        chessPieces[9, 6] = SpawnSinglePiece(ChessPieceType.Elephant, redTeam);
-        chessPieces[9, 7] = SpawnSinglePiece(ChessPieceType.Horse, redTeam);
-        chessPieces[9, 8] = SpawnSinglePiece(ChessPieceType.Chariot, redTeam);
+        chessPieces[0, 9] = SpawnSinglePiece(ChessPieceType.Chariot, RED_ID);
+        chessPieces[1, 9] = SpawnSinglePiece(ChessPieceType.Horse, RED_ID);
+        chessPieces[2, 9] = SpawnSinglePiece(ChessPieceType.Elephant, RED_ID);
+        chessPieces[3, 9] = SpawnSinglePiece(ChessPieceType.Advisor, RED_ID);
+        chessPieces[4, 9] = SpawnSinglePiece(ChessPieceType.General, RED_ID);
+        chessPieces[5, 9] = SpawnSinglePiece(ChessPieceType.Advisor, RED_ID);
+        chessPieces[6, 9] = SpawnSinglePiece(ChessPieceType.Elephant, RED_ID);
+        chessPieces[7, 9] = SpawnSinglePiece(ChessPieceType.Horse, RED_ID);
+        chessPieces[8, 9] = SpawnSinglePiece(ChessPieceType.Chariot, RED_ID);
 
-        chessPieces[7, 1] = SpawnSinglePiece(ChessPieceType.Cannon, redTeam);
-        chessPieces[7, 7] = SpawnSinglePiece(ChessPieceType.Cannon, redTeam);
+        chessPieces[1, 7] = SpawnSinglePiece(ChessPieceType.Cannon, RED_ID);
+        chessPieces[7, 7] = SpawnSinglePiece(ChessPieceType.Cannon, RED_ID);
 
-        chessPieces[6, 0] = SpawnSinglePiece(ChessPieceType.Soldier, redTeam);
-        chessPieces[6, 2] = SpawnSinglePiece(ChessPieceType.Soldier, redTeam);
-        chessPieces[6, 4] = SpawnSinglePiece(ChessPieceType.Soldier, redTeam);
-        chessPieces[6, 6] = SpawnSinglePiece(ChessPieceType.Soldier, redTeam);
-        chessPieces[6, 8] = SpawnSinglePiece(ChessPieceType.Soldier, redTeam);
+        chessPieces[0, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
+        chessPieces[2, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
+        chessPieces[4, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
+        chessPieces[6, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
+        chessPieces[8, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
     }
 
     //Position All Pieces
     private void PositionAllPieces(){
-        for (int row = 0; row < BOARD_ROWS; row++){
-            for (int col = 0; col < BOARD_COLUMNS; col++){
-                if(chessPieces[row, col] != null){
-                    PositionSinglePiece(row, col, true);
+        for (int x = 0; x < BOARD_X; x++){
+            for (int y = 0; y < BOARD_Y; y++){
+                if(chessPieces[x, y] != null){
+                    PositionSinglePiece(x, y, true);
                 }
             }
         }
     }
 
     //Position Single Piece
-    private void PositionSinglePiece(int row, int col, bool force = false){
-        chessPieces[row, col].currentX = col;
-        chessPieces[row, col].currentY = row;
-        Vector3 pos = new Vector3(col * tileSize, row * tileSize) + new Vector3(tileSize / 2, tileSize / 2) + transform.position;
-        chessPieces[row, col].SetPostion(pos, force);
+    private void PositionSinglePiece(int x, int y, bool force = false){
+        chessPieces[x, y].currentX = x;
+        chessPieces[x, y].currentY = y;
+        Vector3 pos = new Vector3(x * tileSize, y * tileSize) + new Vector3(tileSize / 2, tileSize / 2) + transform.position;
+        chessPieces[x, y].SetPostion(pos, force);
     }
 
     //Operations
     private Vector2Int FindTileIndex(GameObject hitInfo){
-        for(int row = 0; row < BOARD_ROWS; row++){
-            for(int col = 0; col < BOARD_COLUMNS; col++){
-                if(board[row, col] == hitInfo){
-                    return new Vector2Int(row, col);
+        for(int x = 0; x < BOARD_X; x++){
+            for(int y = 0; y < BOARD_Y; y++){
+                if(board[x, y] == hitInfo){
+                    return new Vector2Int(x, y);
                 }
             }
         }
 
         return -Vector2Int.one;
     }
-    private bool MoveTo(ChessPiece cp, int row, int col){
+    private bool MoveTo(ChessPiece cp, int x, int y){
         Vector2Int previousPos = new Vector2Int(cp.currentX, cp.currentY);
 
-        if(chessPieces[row, col] != null){
-            ChessPiece ocp = chessPieces[row, col];
+        if(chessPieces[x, y] != null){
+            ChessPiece ocp = chessPieces[x, y];
+            Debug.Log(ocp.name);
+
+            if(cp == ocp){
+                return true;
+            }
             
-            if(cp.team == ocp.team){
+            else if(cp.team == ocp.team){
+                cp.UnselectPiece();
+                currentChooseCP = ocp;
+                currentChooseCP.SelectPiece();
                 return false;
             }
-        }
-        
-        chessPieces[row, col] = cp;
-        chessPieces[previousPos.x, previousPos.y] = null;
+            else{
+                if(ocp.team == BLACK_ID){
+                    deadBlacks.Add(ocp);
+                }
+                else{
+                    deadReds.Add(ocp);
+                }
 
-        PositionSinglePiece(row, col);
+                chessPieces[x, y] = null;
+                Destroy(ocp.gameObject);
+            }
+        }
+        chessPieces[x, y] = cp;
+        chessPieces[previousPos.x, previousPos.y] = null;
+        
+        PositionSinglePiece(x, y);
         return true;
     }
 }
