@@ -108,13 +108,12 @@ public class BoardManager : MonoBehaviour
                 GameObject touchedObject = hit.transform.gameObject;
                 Vector2Int hitPosition = FindTileIndex(touchedObject);
                 if(currentChooseCP != null){
-                    HidePossibleMoves();
                     bool validMove = MoveTo(currentChooseCP, hitPosition.x, hitPosition.y);
                     if(validMove){
                         currentChooseCP.UnselectPiece();
                         currentChooseCP = null;
+                        HidePossibleMoves();
                     }
-                    
                     return;
                 }
                 else{
@@ -128,7 +127,11 @@ public class BoardManager : MonoBehaviour
             }
             else{
                 Debug.Log("RAY CAST FAIL");
-                currentChooseCP = null;
+                if(currentChooseCP != null){
+                    currentChooseCP.UnselectPiece();
+                    currentChooseCP = null;
+                    HidePossibleMoves();
+                }
             }
         }    
     }
@@ -288,24 +291,24 @@ public class BoardManager : MonoBehaviour
     }
     private bool MoveTo(ChessPiece cp, int x, int y){
         Vector2Int previousPos = new Vector2Int(cp.currentX, cp.currentY);
+        bool isInAvailablesMoves = false;
+        ChessPiece ocp = null;
 
         if(chessPieces[x, y] != null){
-            ChessPiece ocp = chessPieces[x, y];
-            Debug.Log(ocp.name);
+            ocp = chessPieces[x, y];
+        }
 
-            if(cp == ocp){
-                return true;
+
+        foreach(Vector2Int move in availableMoves){
+            Debug.Log(move);
+            if(move.x == x && move.y == y){
+                isInAvailablesMoves = true;
+                Debug.Log("TRUE");
+                break;
             }
-            
-            else if(cp.team == ocp.team){
-                cp.UnselectPiece();
-                currentChooseCP = ocp;
-                currentChooseCP.SelectPiece();
-                availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
-                ShowPossibleMoves();
-                return false;
-            }
-            else{
+        }
+        if(isInAvailablesMoves){
+            if(ocp != null){                
                 if(ocp.team == BLACK_ID){
                     deadBlacks.Add(ocp);
                 }
@@ -315,12 +318,32 @@ public class BoardManager : MonoBehaviour
 
                 chessPieces[x, y] = null;
                 Destroy(ocp.gameObject);
+            
             }
+            chessPieces[x, y] = cp;
+            chessPieces[previousPos.x, previousPos.y] = null;
+            
+            PositionSinglePiece(x, y);
+            return true;
         }
-        chessPieces[x, y] = cp;
-        chessPieces[previousPos.x, previousPos.y] = null;
-        
-        PositionSinglePiece(x, y);
-        return true;
+
+        else{
+            HidePossibleMoves();
+            currentChooseCP.UnselectPiece();
+            currentChooseCP = null;
+
+            if(ocp != null){
+                if(cp.team == ocp.team && cp != ocp){
+                    currentChooseCP = ocp;
+                    currentChooseCP.SelectPiece();
+                    availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
+                    ShowPossibleMoves();
+                    return false;
+                }
+            }
+
+            
+            return false;
+        }
     }
 }
