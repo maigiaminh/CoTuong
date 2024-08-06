@@ -261,6 +261,7 @@ MonoBehaviour:
   - {fileID: 6436040070664163864, guid: 49d331e18a6bccc4a89bbad78bea1c8b, type: 3}
   - {fileID: 7880531697768110991, guid: a2229dce487ef1f4e9e216b9eea91cea, type: 3}
   - {fileID: 3220918051663431818, guid: cc111fe8d8eb70d4ab0ec62d9df7fc25, type: 3}
+  dotPrefabs: {fileID: 9141049299332518810, guid: 640c3a237c3e5424aa3699b625cb262a, type: 3}
 --- !u!4 &1253833657
 Transform:
   m_ObjectHideFlags: 0

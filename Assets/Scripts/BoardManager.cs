@@ -19,11 +19,16 @@ public class BoardManager : MonoBehaviour
     private Camera currentCamera;
     private List<ChessPiece> deadBlacks = new List<ChessPiece>();
     private List<ChessPiece> deadReds = new List<ChessPiece>();
+    private List<Vector2Int> availableMoves = new List<Vector2Int>();
+    private List<GameObject> movePoints = new List<GameObject>();
 
     //Prefabs
     [Header("Chess Pieces Prefabs")]
     [SerializeField] private GameObject[] blackPrefabs;
     [SerializeField] private GameObject[] redPrefabs;
+
+    [Header("Others")]
+    [SerializeField] private GameObject dotPrefabs;
 
     private void Awake() {
         board = new GameObject[BOARD_X, BOARD_Y];
@@ -103,6 +108,7 @@ public class BoardManager : MonoBehaviour
                 GameObject touchedObject = hit.transform.gameObject;
                 Vector2Int hitPosition = FindTileIndex(touchedObject);
                 if(currentChooseCP != null){
+                    HidePossibleMoves();
                     bool validMove = MoveTo(currentChooseCP, hitPosition.x, hitPosition.y);
                     if(validMove){
                         currentChooseCP.UnselectPiece();
@@ -115,6 +121,8 @@ public class BoardManager : MonoBehaviour
                     if(chessPieces[hitPosition.x, hitPosition.y] != null){
                         currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
                         currentChooseCP.SelectPiece();
+                        availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
+                        ShowPossibleMoves();
                     }
                 }
             }
@@ -242,6 +250,30 @@ public class BoardManager : MonoBehaviour
         chessPieces[x, y].SetPostion(pos, force);
     }
 
+    //Show Possible Moves
+    private void ShowPossibleMoves(){
+        for(int i = 0; i < availableMoves.Count; i++){
+            GameObject dot = Instantiate(dotPrefabs, transform);
+            dot.transform.position = 
+                new Vector3(availableMoves[i].x * tileSize, availableMoves[i].y * tileSize) 
+                + 
+                new Vector3(tileSize / 2, tileSize / 2) 
+                + 
+                transform.position;
+            dot.transform.localScale = new Vector3(tileSize, tileSize, tileSize);
+            movePoints.Add(dot);
+        }
+    }
+
+    private void HidePossibleMoves(){
+        foreach(GameObject point in movePoints){
+            Destroy(point);
+        }
+
+        movePoints.Clear();
+        availableMoves.Clear();
+    }
+
     //Operations
     private Vector2Int FindTileIndex(GameObject hitInfo){
         for(int x = 0; x < BOARD_X; x++){
@@ -269,6 +301,8 @@ public class BoardManager : MonoBehaviour
                 cp.UnselectPiece();
                 currentChooseCP = ocp;
                 currentChooseCP.SelectPiece();
+                availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
+                ShowPossibleMoves();
                 return false;
             }
             else{
