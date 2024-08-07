@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 public class BoardManager : MonoBehaviour
@@ -9,8 +10,8 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private float tileSize = 1.0f;
     private const int BOARD_X = 9;
     private const int BOARD_Y = 10;
-    private const int BLACK_ID = 0;
-    private const int RED_ID = 1;
+    private const int RED_ID = 0;
+    private const int BLACK_ID = 1;
     private GameObject[,] board;
     private ChessPiece[,] chessPieces;
     
@@ -21,7 +22,8 @@ public class BoardManager : MonoBehaviour
     private List<ChessPiece> deadReds = new List<ChessPiece>();
     private List<Vector2Int> availableMoves = new List<Vector2Int>();
     private List<GameObject> movePoints = new List<GameObject>();
-    private bool isBlackTurn = false;
+    private Stack<Move> moveStack = new Stack<Move>();
+    private bool isRedTurn = false;
 
     //Prefabs
     [Header("Chess Pieces Prefabs")]
@@ -34,7 +36,7 @@ public class BoardManager : MonoBehaviour
     private void Awake() {
         board = new GameObject[BOARD_X, BOARD_Y];
         tileSize = CalculateTileSize(Screen.width, Screen.height);
-        isBlackTurn = true;
+        isRedTurn = true;
 
         InitializeBoard(tileSize, BOARD_X, BOARD_Y);
         PositionBoard();
@@ -119,8 +121,8 @@ public class BoardManager : MonoBehaviour
                 }
                 else{
                     if(chessPieces[hitPosition.x, hitPosition.y] != null){
-                        if((chessPieces[hitPosition.x, hitPosition.y].team == 0 && isBlackTurn) ||
-                            (chessPieces[hitPosition.x, hitPosition.y].team == 1 && !isBlackTurn)){
+                        if((chessPieces[hitPosition.x, hitPosition.y].team == 0 && isRedTurn) ||
+                            (chessPieces[hitPosition.x, hitPosition.y].team == 1 && !isRedTurn)){
                                 currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
                                 currentChooseCP.SelectPiece();
                                 availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
@@ -180,10 +182,10 @@ public class BoardManager : MonoBehaviour
         ChessPiece cp;
 
         if(team == 0){
-            cp = Instantiate(blackPrefabs[(int) type - 1], transform).GetComponent<ChessPiece>();
+            cp = Instantiate(redPrefabs[(int) type - 1], transform).GetComponent<ChessPiece>();
         }
         else{
-            cp = Instantiate(redPrefabs[(int) type - 1], transform).GetComponent<ChessPiece>();
+            cp = Instantiate(blackPrefabs[(int) type - 1], transform).GetComponent<ChessPiece>();
         }
 
         cp.type = type;
@@ -198,44 +200,44 @@ public class BoardManager : MonoBehaviour
         chessPieces = new ChessPiece[BOARD_X, BOARD_Y];
 
         //Black Team
-        chessPieces[0, 0] = SpawnSinglePiece(ChessPieceType.Chariot, BLACK_ID);
-        chessPieces[1, 0] = SpawnSinglePiece(ChessPieceType.Horse, BLACK_ID);
-        chessPieces[2, 0] = SpawnSinglePiece(ChessPieceType.Elephant, BLACK_ID);
-        chessPieces[3, 0] = SpawnSinglePiece(ChessPieceType.Advisor, BLACK_ID);
-        chessPieces[4, 0] = SpawnSinglePiece(ChessPieceType.General, BLACK_ID);
-        chessPieces[5, 0] = SpawnSinglePiece(ChessPieceType.Advisor, BLACK_ID);
-        chessPieces[6, 0] = SpawnSinglePiece(ChessPieceType.Elephant, BLACK_ID);
-        chessPieces[7, 0] = SpawnSinglePiece(ChessPieceType.Horse, BLACK_ID);
-        chessPieces[8, 0] = SpawnSinglePiece(ChessPieceType.Chariot, BLACK_ID);
+        chessPieces[0, 0] = SpawnSinglePiece(ChessPieceType.Chariot, RED_ID);
+        chessPieces[1, 0] = SpawnSinglePiece(ChessPieceType.Horse, RED_ID);
+        chessPieces[2, 0] = SpawnSinglePiece(ChessPieceType.Elephant, RED_ID);
+        chessPieces[3, 0] = SpawnSinglePiece(ChessPieceType.Advisor, RED_ID);
+        chessPieces[4, 0] = SpawnSinglePiece(ChessPieceType.General, RED_ID);
+        chessPieces[5, 0] = SpawnSinglePiece(ChessPieceType.Advisor, RED_ID);
+        chessPieces[6, 0] = SpawnSinglePiece(ChessPieceType.Elephant, RED_ID);
+        chessPieces[7, 0] = SpawnSinglePiece(ChessPieceType.Horse, RED_ID);
+        chessPieces[8, 0] = SpawnSinglePiece(ChessPieceType.Chariot, RED_ID);
 
-        chessPieces[1, 2] = SpawnSinglePiece(ChessPieceType.Cannon, BLACK_ID);
-        chessPieces[7, 2] = SpawnSinglePiece(ChessPieceType.Cannon, BLACK_ID);
+        chessPieces[1, 2] = SpawnSinglePiece(ChessPieceType.Cannon, RED_ID);
+        chessPieces[7, 2] = SpawnSinglePiece(ChessPieceType.Cannon, RED_ID);
 
-        chessPieces[0, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
-        chessPieces[2, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
-        chessPieces[4, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
-        chessPieces[6, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
-        chessPieces[8, 3] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
+        chessPieces[0, 3] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
+        chessPieces[2, 3] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
+        chessPieces[4, 3] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
+        chessPieces[6, 3] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
+        chessPieces[8, 3] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
 
         //Red Team
-        chessPieces[0, 9] = SpawnSinglePiece(ChessPieceType.Chariot, RED_ID);
-        chessPieces[1, 9] = SpawnSinglePiece(ChessPieceType.Horse, RED_ID);
-        chessPieces[2, 9] = SpawnSinglePiece(ChessPieceType.Elephant, RED_ID);
-        chessPieces[3, 9] = SpawnSinglePiece(ChessPieceType.Advisor, RED_ID);
-        chessPieces[4, 9] = SpawnSinglePiece(ChessPieceType.General, RED_ID);
-        chessPieces[5, 9] = SpawnSinglePiece(ChessPieceType.Advisor, RED_ID);
-        chessPieces[6, 9] = SpawnSinglePiece(ChessPieceType.Elephant, RED_ID);
-        chessPieces[7, 9] = SpawnSinglePiece(ChessPieceType.Horse, RED_ID);
-        chessPieces[8, 9] = SpawnSinglePiece(ChessPieceType.Chariot, RED_ID);
+        chessPieces[0, 9] = SpawnSinglePiece(ChessPieceType.Chariot, BLACK_ID);
+        chessPieces[1, 9] = SpawnSinglePiece(ChessPieceType.Horse, BLACK_ID);
+        chessPieces[2, 9] = SpawnSinglePiece(ChessPieceType.Elephant, BLACK_ID);
+        chessPieces[3, 9] = SpawnSinglePiece(ChessPieceType.Advisor, BLACK_ID);
+        chessPieces[4, 9] = SpawnSinglePiece(ChessPieceType.General, BLACK_ID);
+        chessPieces[5, 9] = SpawnSinglePiece(ChessPieceType.Advisor, BLACK_ID);
+        chessPieces[6, 9] = SpawnSinglePiece(ChessPieceType.Elephant, BLACK_ID);
+        chessPieces[7, 9] = SpawnSinglePiece(ChessPieceType.Horse, BLACK_ID);
+        chessPieces[8, 9] = SpawnSinglePiece(ChessPieceType.Chariot, BLACK_ID);
 
-        chessPieces[1, 7] = SpawnSinglePiece(ChessPieceType.Cannon, RED_ID);
-        chessPieces[7, 7] = SpawnSinglePiece(ChessPieceType.Cannon, RED_ID);
+        chessPieces[1, 7] = SpawnSinglePiece(ChessPieceType.Cannon, BLACK_ID);
+        chessPieces[7, 7] = SpawnSinglePiece(ChessPieceType.Cannon, BLACK_ID);
 
-        chessPieces[0, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
-        chessPieces[2, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
-        chessPieces[4, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
-        chessPieces[6, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
-        chessPieces[8, 6] = SpawnSinglePiece(ChessPieceType.Soldier, RED_ID);
+        chessPieces[0, 6] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
+        chessPieces[2, 6] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
+        chessPieces[4, 6] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
+        chessPieces[6, 6] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
+        chessPieces[8, 6] = SpawnSinglePiece(ChessPieceType.Soldier, BLACK_ID);
     }
 
     //Position All Pieces
@@ -304,14 +306,15 @@ public class BoardManager : MonoBehaviour
 
 
         foreach(Vector2Int move in availableMoves){
-            Debug.Log(move);
             if(move.x == x && move.y == y){
                 isInAvailablesMoves = true;
-                Debug.Log("TRUE");
                 break;
             }
         }
+
         if(isInAvailablesMoves){
+            Move move = new Move(previousPos, new Vector2Int(x, y), isRedTurn);
+
             if(ocp != null){                
                 if(ocp.team == BLACK_ID){
                     deadBlacks.Add(ocp);
@@ -319,21 +322,23 @@ public class BoardManager : MonoBehaviour
                 else{
                     deadReds.Add(ocp);
                 }
-
+                
+                move.eliminatedPiece = ocp;
                 chessPieces[x, y] = null;
-                Destroy(ocp.gameObject);
+                ocp.gameObject.SetActive(false);
             
             }
+
             chessPieces[x, y] = cp;
             chessPieces[previousPos.x, previousPos.y] = null;
 
             PositionSinglePiece(x, y);
 
-            isBlackTurn = !isBlackTurn;
-
+            isRedTurn = !isRedTurn;
+            moveStack.Push(move);
             return true;
         }
-
+        
         else{
             HidePossibleMoves();
             currentChooseCP.UnselectPiece();
@@ -349,8 +354,33 @@ public class BoardManager : MonoBehaviour
                 }
             }
 
-            
             return false;
+        }
+    }
+
+    public void BackToPreviousMove(){
+        if(moveStack.Count > 0){
+            Move move = moveStack.Pop();
+            
+            ChessPiece cp = chessPieces[move.currentMove.x, move.currentMove.y];
+
+            chessPieces[move.lastMove.x, move.lastMove.y] = cp;
+            chessPieces[move.currentMove.x, move.currentMove.y] = null;
+
+            PositionSinglePiece(move.lastMove.x, move.lastMove.y);
+
+            isRedTurn = move.isRedTurn;
+            
+            if(move.eliminatedPiece != null){
+                ChessPiece ocp = move.eliminatedPiece;
+
+                ocp.gameObject.SetActive(true);
+                chessPieces[move.currentMove.x, move.currentMove.y] = ocp;
+            }
+            
+        }
+        else{
+            Debug.LogWarning("There are no moves in the stack");
         }
     }
 }
