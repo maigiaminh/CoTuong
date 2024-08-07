@@ -21,6 +21,7 @@ public class BoardManager : MonoBehaviour
     private List<ChessPiece> deadReds = new List<ChessPiece>();
     private List<Vector2Int> availableMoves = new List<Vector2Int>();
     private List<GameObject> movePoints = new List<GameObject>();
+    private bool isBlackTurn = false;
 
     //Prefabs
     [Header("Chess Pieces Prefabs")]
@@ -32,8 +33,8 @@ public class BoardManager : MonoBehaviour
 
     private void Awake() {
         board = new GameObject[BOARD_X, BOARD_Y];
-
         tileSize = CalculateTileSize(Screen.width, Screen.height);
+        isBlackTurn = true;
 
         InitializeBoard(tileSize, BOARD_X, BOARD_Y);
         PositionBoard();
@@ -118,10 +119,13 @@ public class BoardManager : MonoBehaviour
                 }
                 else{
                     if(chessPieces[hitPosition.x, hitPosition.y] != null){
-                        currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
-                        currentChooseCP.SelectPiece();
-                        availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
-                        ShowPossibleMoves();
+                        if((chessPieces[hitPosition.x, hitPosition.y].team == 0 && isBlackTurn) ||
+                            (chessPieces[hitPosition.x, hitPosition.y].team == 1 && !isBlackTurn)){
+                                currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
+                                currentChooseCP.SelectPiece();
+                                availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
+                                ShowPossibleMoves();
+                        }
                     }
                 }
             }
@@ -258,7 +262,7 @@ public class BoardManager : MonoBehaviour
         for(int i = 0; i < availableMoves.Count; i++){
             GameObject dot = Instantiate(dotPrefabs, transform);
             dot.transform.position = 
-                new Vector3(availableMoves[i].x * tileSize, availableMoves[i].y * tileSize) 
+                new Vector3(availableMoves[i].x * tileSize, availableMoves[i].y * tileSize, -0.1f) 
                 + 
                 new Vector3(tileSize / 2, tileSize / 2) 
                 + 
@@ -322,8 +326,11 @@ public class BoardManager : MonoBehaviour
             }
             chessPieces[x, y] = cp;
             chessPieces[previousPos.x, previousPos.y] = null;
-            
+
             PositionSinglePiece(x, y);
+
+            isBlackTurn = !isBlackTurn;
+
             return true;
         }
 
