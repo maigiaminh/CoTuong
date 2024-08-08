@@ -72,6 +72,32 @@ public class General : ChessPiece
                 }
             }
         }
+        
+        //Possible Checkmate
+        if(currentY < 3){
+            for(int i = currentY + 1; i < boardY; i++){
+                if(board[currentX, i] != null){
+                    if(board[currentX, i].type == ChessPieceType.General){
+                        moves.Add(new Vector2Int(currentX, i));
+                    }
+                    
+                    break;
+                }
+            }
+        }
+        
+        else{
+            for(int i = currentY - 1; i >= 0; i--){
+                if(board[currentX, i] != null){
+                    if(board[currentX, i].type == ChessPieceType.General){
+                        moves.Add(new Vector2Int(currentX, i));
+                    }
+                    
+                    break;
+                }
+            }
+        }
+               
 
         return moves;
     }

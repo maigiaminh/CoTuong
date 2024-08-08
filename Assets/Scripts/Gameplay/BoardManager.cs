@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using Unity.Collections;
 using UnityEngine;
 
@@ -126,6 +127,8 @@ public class BoardManager : MonoBehaviour
                                 currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
                                 currentChooseCP.SelectPiece();
                                 availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
+
+                                PreventCheck();
                                 ShowPossibleMoves();
                         }
                     }
@@ -140,6 +143,82 @@ public class BoardManager : MonoBehaviour
                 }
             }
         }    
+    }
+
+    private void PreventCheck()
+    {
+        ChessPiece targetGeneral = null;
+        for(int x = 0; x < BOARD_X; x++){
+            for(int y = 0; y < BOARD_Y; y++){
+                if(chessPieces[x, y] != null){
+                    if(chessPieces[x, y].type == ChessPieceType.General){
+                        if(chessPieces[x, y].team == currentChooseCP.team){
+                            targetGeneral = chessPieces[x, y];
+                        }
+                    }
+                }
+            }
+        }
+
+        SimulateMoveForSinglePiece(currentChooseCP, ref availableMoves, targetGeneral);
+    }
+
+    private void SimulateMoveForSinglePiece(ChessPiece cp, ref List<Vector2Int> moves, ChessPiece targetGeneral){
+        int actualX = cp.currentX;
+        int actualY = cp.currentY;
+
+        List<Vector2Int> movesToRemove = new List<Vector2Int>();
+        for(int i = 0; i < moves.Count; i++){
+            int simX = moves[i].x;
+            int simY = moves[i].y;
+
+            Vector2Int generalPositionInThisSim = new Vector2Int(targetGeneral.currentX, targetGeneral.currentY);
+            if(cp.type == ChessPieceType.General){
+                generalPositionInThisSim = new Vector2Int(simX, simY);
+            }
+
+            ChessPiece[,] simulation = new ChessPiece[BOARD_X, BOARD_Y];
+            List<ChessPiece> simAttackingPieces = new List<ChessPiece>();
+            for(int x = 0; x < BOARD_X; x++){
+                for(int y = 0; y < BOARD_Y; y++){
+                    if(chessPieces[x, y] != null){
+                        simulation[x, y] = chessPieces[x, y];
+                        if(simulation[x, y].team != cp.team){
+                            simAttackingPieces.Add(simulation[x, y]);
+                        }
+                    }
+                }
+            }
+
+            simulation[actualX, actualY] = null;
+            cp.currentX = simX;
+            cp.currentY = simY;
+            simulation[simX, simY] = cp;
+
+            var deadPiece = simAttackingPieces.Find(c => c.currentX == simX && c.currentY == simY);
+            if(deadPiece != null){
+                simAttackingPieces.Remove(deadPiece);
+            }
+
+            List<Vector2Int> simMoves = new List<Vector2Int>();
+            for(int a = 0; a < simAttackingPieces.Count; a++){
+                var piecesMoves = simAttackingPieces[a].GetAvailableMoves(ref simulation, BOARD_X, BOARD_Y);
+                for(int b = 0; b < piecesMoves.Count; b++){
+                    simMoves.Add(piecesMoves[b]);
+                }
+            }
+
+            if(ContainsValidMove(ref simMoves, generalPositionInThisSim)){
+                movesToRemove.Add(moves[i]);
+            }
+
+            cp.currentX = actualX;
+            cp.currentY = actualY;
+        }
+
+        for(int i = 0; i < movesToRemove.Count; i++){
+            moves.Remove(movesToRemove[i]);
+        }
     }
 
     private float CalculateTileSize(int width, int height)
@@ -295,6 +374,17 @@ public class BoardManager : MonoBehaviour
 
         return -Vector2Int.one;
     }
+
+    private bool ContainsValidMove(ref List<Vector2Int> moves, Vector2Int pos){
+        for(int i = 0; i < moves.Count; i++){
+            if(moves[i].x == pos.x && moves[i].y == pos.y){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool MoveTo(ChessPiece cp, int x, int y){
         Vector2Int previousPos = new Vector2Int(cp.currentX, cp.currentY);
         bool isInAvailablesMoves = false;
