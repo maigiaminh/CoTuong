@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Xml.Serialization;
-using Unity.Collections;
 using UnityEngine;
 
 public class BoardManager : MonoBehaviour
@@ -43,6 +40,80 @@ public class BoardManager : MonoBehaviour
         PositionBoard();
         SpawnAllPieces();
         PositionAllPieces();
+    }
+
+    private void Update() {
+        if(currentCamera == null){
+            currentCamera = Camera.current;
+            return;
+        }
+
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+        {
+            Touch touch = Input.GetTouch(0);
+            Vector2 touchPosition = Camera.main.ScreenToWorldPoint(touch.position);
+            RaycastHit2D hit = Physics2D.Raycast(touchPosition, Vector2.zero);
+            if (hit.transform != null)
+            {
+                GameObject touchedObject = hit.transform.gameObject;
+                Vector2Int hitPosition = FindTileIndex(touchedObject);
+                if(currentChooseCP != null){
+                    ChessPiece ocp = null;
+
+                    if(chessPieces[hitPosition.x, hitPosition.y] != null){
+                        ocp = chessPieces[hitPosition.x, hitPosition.y];
+
+                        if(currentChooseCP.team == ocp.team){
+                            HidePossibleMoves();
+                            currentChooseCP.UnselectPiece();
+                            if(currentChooseCP != ocp){
+                                currentChooseCP = ocp;
+                                currentChooseCP.SelectPiece();
+                                availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
+
+                                PreventCheck();
+                                ShowPossibleMoves();
+                                
+                            }
+                            else{
+                                currentChooseCP = null;
+                            }
+
+                            return;
+                        }
+                    }
+
+                    bool validMove = MoveTo(currentChooseCP, hitPosition.x, hitPosition.y);
+                    if(validMove){
+                        currentChooseCP.UnselectPiece();
+                        currentChooseCP = null;
+                        HidePossibleMoves();
+                    }
+                    return;
+                }
+                else{
+                    if(chessPieces[hitPosition.x, hitPosition.y] != null){
+                        if((chessPieces[hitPosition.x, hitPosition.y].team == 0 && isRedTurn) ||
+                            (chessPieces[hitPosition.x, hitPosition.y].team == 1 && !isRedTurn)){
+                                currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
+                                currentChooseCP.SelectPiece();
+                                availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
+
+                                PreventCheck();
+                                ShowPossibleMoves();
+                        }
+                    }
+                }
+            }
+            else{
+                Debug.Log("RAY CAST FAIL");
+                if(currentChooseCP != null){
+                    currentChooseCP.UnselectPiece();
+                    currentChooseCP = null;
+                    HidePossibleMoves();
+                }
+            }
+        }    
     }
 
     private void PositionBoard()
@@ -95,54 +166,6 @@ public class BoardManager : MonoBehaviour
         float pixelHeight = worldSize.y * ppu;
 
         return new Vector2(pixelWidth, pixelHeight);
-    }
-    private void Update() {
-        if(currentCamera == null){
-            currentCamera = Camera.current;
-            return;
-        }
-
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-        {
-            Touch touch = Input.GetTouch(0);
-            Vector2 touchPosition = Camera.main.ScreenToWorldPoint(touch.position);
-            RaycastHit2D hit = Physics2D.Raycast(touchPosition, Vector2.zero);
-            if (hit.transform != null)
-            {
-                GameObject touchedObject = hit.transform.gameObject;
-                Vector2Int hitPosition = FindTileIndex(touchedObject);
-                if(currentChooseCP != null){
-                    bool validMove = MoveTo(currentChooseCP, hitPosition.x, hitPosition.y);
-                    if(validMove){
-                        currentChooseCP.UnselectPiece();
-                        currentChooseCP = null;
-                        HidePossibleMoves();
-                    }
-                    return;
-                }
-                else{
-                    if(chessPieces[hitPosition.x, hitPosition.y] != null){
-                        if((chessPieces[hitPosition.x, hitPosition.y].team == 0 && isRedTurn) ||
-                            (chessPieces[hitPosition.x, hitPosition.y].team == 1 && !isRedTurn)){
-                                currentChooseCP = chessPieces[hitPosition.x, hitPosition.y];
-                                currentChooseCP.SelectPiece();
-                                availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
-
-                                PreventCheck();
-                                ShowPossibleMoves();
-                        }
-                    }
-                }
-            }
-            else{
-                Debug.Log("RAY CAST FAIL");
-                if(currentChooseCP != null){
-                    currentChooseCP.UnselectPiece();
-                    currentChooseCP = null;
-                    HidePossibleMoves();
-                }
-            }
-        }    
     }
 
     private void PreventCheck()
@@ -338,7 +361,7 @@ public class BoardManager : MonoBehaviour
         chessPieces[x, y].SetPostion(pos, force);
     }
 
-    //Show Possible Moves
+    //Possible Moves
     private void ShowPossibleMoves(){
         for(int i = 0; i < availableMoves.Count; i++){
             GameObject dot = Instantiate(dotPrefabs, transform);
@@ -426,6 +449,10 @@ public class BoardManager : MonoBehaviour
 
             isRedTurn = !isRedTurn;
             moveStack.Push(move);
+
+            if(CheckForCheckmate()){
+                Debug.LogWarning("WIN");
+            }
             return true;
         }
         
@@ -439,7 +466,10 @@ public class BoardManager : MonoBehaviour
                     currentChooseCP = ocp;
                     currentChooseCP.SelectPiece();
                     availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
-                    ShowPossibleMoves();
+                    //Debug.LogWarning(availableMoves.Count);
+                    //CheckForCheckmate();
+                    //Debug.LogWarning(availableMoves.Count);
+                    //ShowPossibleMoves();
                     return false;
                 }
             }
@@ -472,5 +502,57 @@ public class BoardManager : MonoBehaviour
         else{
             Debug.LogWarning("There are no moves in the stack");
         }
+    }
+
+    private bool CheckForCheckmate(){
+        if(moveStack.Count > 0){
+            var lastMove = moveStack.Peek();
+            Debug.Log(lastMove.isRedTurn);
+            int targetTeam = lastMove.isRedTurn == true ? 1 : 0;
+
+            List<ChessPiece> attackingPieces = new List<ChessPiece>();
+            List<ChessPiece> defendingPieces = new List<ChessPiece>();
+            ChessPiece targetGeneral = null;
+
+            for(int x = 0; x < BOARD_X; x++){
+                for(int y = 0; y < BOARD_Y; y++){
+                    if(chessPieces[x, y] != null){
+                        if(chessPieces[x, y].team == targetTeam){
+                            defendingPieces.Add(chessPieces[x, y]);
+                            if(chessPieces[x, y].type == ChessPieceType.General){
+                                targetGeneral = chessPieces[x, y];
+                            }
+                        }
+                        else{
+                            attackingPieces.Add(chessPieces[x, y]);
+                        }
+                    }
+                }
+            }
+            
+            List<Vector2Int> currentAvailableMoves = new List<Vector2Int>();
+            for(int i = 0; i < attackingPieces.Count; i++){
+                var piecesMoves = attackingPieces[i].GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
+                for(int j = 0; j < piecesMoves.Count; j++){
+                    currentAvailableMoves.Add(piecesMoves[j]);
+                }
+            }
+
+            if(ContainsValidMove(ref currentAvailableMoves, new Vector2Int(targetGeneral.currentX, targetGeneral.currentY))){
+                for(int i = 0; i < defendingPieces.Count; i++){
+                    List<Vector2Int> defendingMoves = defendingPieces[i].GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
+                    SimulateMoveForSinglePiece(defendingPieces[i], ref defendingMoves, targetGeneral);
+
+                    if(defendingMoves.Count != 0){
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+        
+
+        return false;
     }
 }
