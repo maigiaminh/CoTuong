@@ -6,6 +6,7 @@ public class BoardManager : MonoBehaviour
     //Board
     [Header("Board Properties")]
     [SerializeField] private float tileSize = 1.0f;
+    [SerializeField] private GameObject boardImage;
     private const int BOARD_X = 9;
     private const int BOARD_Y = 10;
     private const int RED_ID = 0;
@@ -34,6 +35,7 @@ public class BoardManager : MonoBehaviour
     private void Awake() {
         board = new GameObject[BOARD_X, BOARD_Y];
         tileSize = CalculateTileSize(Screen.width, Screen.height);
+        boardImage.transform.localScale = new Vector2(tileSize,tileSize);
         isRedTurn = true;
 
         InitializeBoard(tileSize, BOARD_X, BOARD_Y);
@@ -130,8 +132,8 @@ public class BoardManager : MonoBehaviour
             );
 
         screenCenterWorldPosition.z = transform.position.z;
-
         transform.position = screenCenterWorldPosition;
+        //boardImage.transform.position = screenCenterWorldPosition;
 
         Debug.Log("Board moved to: " + transform.position);
     }
@@ -273,6 +275,7 @@ public class BoardManager : MonoBehaviour
                 mesh.vertices = vertices;
                 mesh.triangles = tris;
 
+                tile.GetComponent<MeshRenderer>().enabled = false;
                 tile.layer = LayerMask.NameToLayer("Tile");
                 tile.AddComponent<BoxCollider2D>(); 
             }
@@ -456,26 +459,7 @@ public class BoardManager : MonoBehaviour
             return true;
         }
         
-        else{
-            HidePossibleMoves();
-            currentChooseCP.UnselectPiece();
-            currentChooseCP = null;
-
-            if(ocp != null){
-                if(cp.team == ocp.team && cp != ocp){
-                    currentChooseCP = ocp;
-                    currentChooseCP.SelectPiece();
-                    availableMoves = currentChooseCP.GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
-                    //Debug.LogWarning(availableMoves.Count);
-                    //CheckForCheckmate();
-                    //Debug.LogWarning(availableMoves.Count);
-                    //ShowPossibleMoves();
-                    return false;
-                }
-            }
-
-            return false;
-        }
+        return false;
     }
 
     public void BackToPreviousMove(){
