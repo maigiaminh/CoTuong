@@ -30,7 +30,6 @@ public class UIManager : MonoBehaviour
     private string[] go = { "Black", "Red" };
     public int currentGoFirst;
     private void Awake(){
-        GetComponent<CanvasScaler>().referenceResolution = new Vector2(Screen.width, Screen.height);
         blackImage.sprite = sides[1];
         redImage.sprite = sides[2];
         currentGoFirst = 0;
@@ -109,9 +108,13 @@ public class UIManager : MonoBehaviour
     public void StartPvP(){
         if(timeIndex != 0){
             gameManager.timer = true;
+            gameManager.p1Time = int.Parse(time[timeIndex]) * 60;
+            gameManager.p2Time = int.Parse(time[timeIndex]) * 60;
         }
         else{
             gameManager.timer = false;
+            gameManager.p1Time = 0;
+            gameManager.p2Time = 0;
         }
         SceneManager.LoadScene("Main Scene");
     }

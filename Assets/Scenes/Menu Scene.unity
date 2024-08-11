@@ -425,7 +425,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48b1f328f0234c74bb32da1ab4839551, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uIManager: {fileID: 578258903}
+  timer: 0
+  p1Time: 0
+  p2Time: 0
 --- !u!4 &268379827
 Transform:
   m_ObjectHideFlags: 0
@@ -1333,6 +1335,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e04d22d21484e2419a9c973d22f8a87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameManager: {fileID: 268379826}
   pvpSettingPanel: {fileID: 2056207702}
   timeText: {fileID: 1668880170}
   goFirstText: {fileID: 1513882051}
@@ -4836,8 +4839,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 268379826}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+      - m_Target: {fileID: 578258903}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
         m_MethodName: StartPvP
         m_Mode: 1
         m_Arguments:
