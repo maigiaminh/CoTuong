@@ -24,6 +24,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject dialogPanel;
     [SerializeField] private TMP_Text dialogText;
 
+    [Header("Checkmate")]
+    [SerializeField] private GameObject checkmatePanel;
+    [SerializeField] private TMP_Text checkmateText;
+    [SerializeField] private Image checkmateImage;
+
+
     [Header("Button")]
     [SerializeField] private Button p1Backward;
     [SerializeField] private Button p2Backward;
@@ -151,10 +157,55 @@ public class GameManager : MonoBehaviour
             yield return null; 
         }
     }
+
+    public void Checkmate(){
+        StartCoroutine(CheckmateAnimationIn());
+    }
+
+    private IEnumerator CheckmateAnimationIn(){
+        checkmatePanel.SetActive(true);
+
+        float elapsedTime = 0f;
+
+        while (elapsedTime < 1f)
+        {
+            elapsedTime += Time.deltaTime;
+
+            Color color = checkmateImage.color;
+            color.a = Mathf.Clamp01(elapsedTime / 1f);
+            checkmateImage.color = color;
+            checkmateText.alpha = Mathf.Clamp01(elapsedTime / 1f);
+
+            yield return null; 
+        }
+
+        StartCoroutine(CheckmateAnimationOut());
+    }
+
+    private IEnumerator CheckmateAnimationOut(){
+        float elapsedTime = 0f;
+
+        while (elapsedTime < 1f)
+        {
+            elapsedTime += Time.deltaTime;
+
+            Color color = checkmateImage.color;
+            color.a = 1 - Mathf.Clamp01(elapsedTime / 1f);
+            checkmateImage.color = color;
+            checkmateText.alpha = 1 - Mathf.Clamp01(elapsedTime / 1f);
+
+            yield return null; 
+        }
+
+        checkmatePanel.SetActive(false);
+    }
     
     public void Rematch(){
-        endGamePanel.SetActive(false);
         boardManager.isEndGame = false;
+
+        endGamePanel.SetActive(false);
+        checkmatePanel.SetActive(false);
+
         if(settingManager != null){
             if(settingManager.timer){
                 p1Time = settingManager.p1Time;
@@ -167,6 +218,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        boardManager.HidePossibleMoves();
         boardManager.DestroyAllPieces();
         boardManager.SpawnAllPieces();
         boardManager.PositionAllPieces();

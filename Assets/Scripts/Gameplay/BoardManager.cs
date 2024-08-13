@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Microsoft.Unity.VisualStudio.Editor;
+using TMPro;
 using UnityEngine;
 
 public class BoardManager : MonoBehaviour
@@ -34,6 +36,7 @@ public class BoardManager : MonoBehaviour
 
     [Header("Others")]
     [SerializeField] private GameObject dotPrefabs;
+    [SerializeField] private Sprite[] availableMoveSprites;
 
     private void Awake() {
         manager = FindObjectOfType<SettingManager>();
@@ -397,6 +400,12 @@ public class BoardManager : MonoBehaviour
     private void ShowPossibleMoves(){
         for(int i = 0; i < availableMoves.Count; i++){
             GameObject dot = Instantiate(dotPrefabs, transform);
+            if(chessPieces[availableMoves[i].x, availableMoves[i].y] == null){
+                dot.GetComponent<SpriteRenderer>().sprite = availableMoveSprites[0]; 
+            }
+            else{
+                dot.GetComponent<SpriteRenderer>().sprite = availableMoveSprites[1]; 
+            }
             dot.transform.position = 
                 new Vector3(availableMoves[i].x * tileSize, availableMoves[i].y * tileSize, -0.1f) 
                 + 
@@ -408,7 +417,7 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    private void HidePossibleMoves(){
+    public void HidePossibleMoves(){
         foreach(GameObject point in movePoints){
             Destroy(point);
         }
@@ -562,6 +571,7 @@ public class BoardManager : MonoBehaviour
             }
 
             if(ContainsValidMove(ref currentAvailableMoves, new Vector2Int(targetGeneral.currentX, targetGeneral.currentY))){
+                gameManager.Checkmate();
                 for(int i = 0; i < defendingPieces.Count; i++){
                     List<Vector2Int> defendingMoves = defendingPieces[i].GetAvailableMoves(ref chessPieces, BOARD_X, BOARD_Y);
                     SimulateMoveForSinglePiece(defendingPieces[i], ref defendingMoves, targetGeneral);
