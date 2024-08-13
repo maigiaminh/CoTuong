@@ -207,8 +207,8 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 578258903}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: ChangGoFirst
-        m_Mode: 3
+        m_MethodName: Backward
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -407,7 +407,7 @@ GameObject:
   - component: {fileID: 268379827}
   - component: {fileID: 268379826}
   m_Layer: 0
-  m_Name: Game Manager
+  m_Name: Setting Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -428,6 +428,8 @@ MonoBehaviour:
   timer: 0
   p1Time: 0
   p2Time: 0
+  redGoFirst: 0
+  backward: 0
 --- !u!4 &268379827
 Transform:
   m_ObjectHideFlags: 0
@@ -739,7 +741,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 578258903}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: ChangeSide
+        m_MethodName: MoveFirst
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -871,7 +873,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 578258903}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: ChangeSide
+        m_MethodName: MoveFirst
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -931,7 +933,7 @@ GameObject:
   - component: {fileID: 512179161}
   - component: {fileID: 512179160}
   m_Layer: 5
-  m_Name: Play Side
+  m_Name: Move First
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1335,20 +1337,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e04d22d21484e2419a9c973d22f8a87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameManager: {fileID: 268379826}
+  settingManager: {fileID: 268379826}
   pvpSettingPanel: {fileID: 2056207702}
   timeText: {fileID: 1668880170}
-  goFirstText: {fileID: 1513882051}
+  backwardText: {fileID: 1513882051}
   blackImage: {fileID: 447430640}
   redImage: {fileID: 412700933}
-  sides:
-  - {fileID: 21300000, guid: e22d2d37b1093f84c935677d2a1a2861, type: 3}
-  - {fileID: 21300000, guid: e9922608b8cc409419d6b145560f19c0, type: 3}
+  sideSprites:
   - {fileID: 21300000, guid: 99780d0c0271117479fe2b3ecb5fc0a2, type: 3}
   - {fileID: 21300000, guid: cf9e2cd5fe7f0924ebda57484c648479, type: 3}
+  - {fileID: 21300000, guid: e22d2d37b1093f84c935677d2a1a2861, type: 3}
+  - {fileID: 21300000, guid: e9922608b8cc409419d6b145560f19c0, type: 3}
   timeIndex: 0
-  currentSide: 0
-  currentGoFirst: 0
+  redGoFirst: 0
+  backward: 0
 --- !u!1 &585052701
 GameObject:
   m_ObjectHideFlags: 0
@@ -1517,7 +1519,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 200, y: 0}
+  m_AnchoredPosition: {x: 160, y: 0}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &586935850
@@ -1540,7 +1542,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Side
+  m_text: First Move
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f329c667900c3724f98fea35e744a120, type: 2}
   m_sharedMaterial: {fileID: 7198471999267792929, guid: f329c667900c3724f98fea35e744a120, type: 2}
@@ -1567,14 +1569,14 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 75
-  m_fontSizeBase: 75
+  m_fontSize: 60
+  m_fontSizeBase: 60
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -2338,7 +2340,7 @@ GameObject:
   - component: {fileID: 1063010953}
   - component: {fileID: 1063010952}
   m_Layer: 5
-  m_Name: Play First
+  m_Name: Backward
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2436,7 +2438,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 200, y: 0}
+  m_AnchoredPosition: {x: 150, y: 0}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1125253876
@@ -2459,7 +2461,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Time
+  m_text: Time Limit
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f329c667900c3724f98fea35e744a120, type: 2}
   m_sharedMaterial: {fileID: 7198471999267792929, guid: f329c667900c3724f98fea35e744a120, type: 2}
@@ -2486,14 +2488,14 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 75
-  m_fontSizeBase: 75
+  m_fontSize: 60
+  m_fontSizeBase: 60
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -2758,7 +2760,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 200, y: 0}
+  m_AnchoredPosition: {x: 160, y: 0}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1339081000
@@ -2781,7 +2783,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Go First
+  m_text: Backward
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f329c667900c3724f98fea35e744a120, type: 2}
   m_sharedMaterial: {fileID: 7198471999267792929, guid: f329c667900c3724f98fea35e744a120, type: 2}
@@ -2808,14 +2810,14 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 75
-  m_fontSizeBase: 75
+  m_fontSize: 60
+  m_fontSizeBase: 60
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -3185,7 +3187,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Black
+  m_text: OFF
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f329c667900c3724f98fea35e744a120, type: 2}
   m_sharedMaterial: {fileID: 7198471999267792929, guid: f329c667900c3724f98fea35e744a120, type: 2}
@@ -3395,7 +3397,7 @@ GameObject:
   - component: {fileID: 1668472185}
   - component: {fileID: 1668472184}
   m_Layer: 5
-  m_Name: Inside Background
+  m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3783,7 +3785,7 @@ GameObject:
   - component: {fileID: 1802224291}
   - component: {fileID: 1802224290}
   m_Layer: 5
-  m_Name: Inside Background
+  m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4670,8 +4672,8 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 578258903}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: ChangGoFirst
-        m_Mode: 3
+        m_MethodName: Backward
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine

@@ -7,32 +7,32 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    [SerializeField] GameManager gameManager;
+    [SerializeField] SettingManager settingManager;
     //Panels
     [Header("Panels")]
     [SerializeField] private GameObject pvpSettingPanel;
 
     [Header("Text")]
     [SerializeField] private TMP_Text timeText;
-    [SerializeField] private TMP_Text goFirstText;
+    [SerializeField] private TMP_Text backwardText;
     [Header("Button")]
     [SerializeField] private Image blackImage;
     [SerializeField] private Image redImage;
     [Header("Image")]
-    [SerializeField] private Sprite[] sides;
+    [SerializeField] private Sprite[] sideSprites;
     //Time
     public int timeIndex = 0;
     private string[] time = { "OFF", "5", "10", "15", "20", "25", "30" };
 
-    //Side
-    public int currentSide = 0;
-    //Go First
-    private string[] go = { "Black", "Red" };
-    public int currentGoFirst;
+    //Move First
+    public bool redGoFirst;
+    
+    //Backward
+    public bool backward = false;
     private void Awake(){
-        blackImage.sprite = sides[1];
-        redImage.sprite = sides[2];
-        currentGoFirst = 0;
+        redImage.sprite = sideSprites[1];
+        blackImage.sprite = sideSprites[2];
+        redGoFirst = true;
     }
 
     public void OpenPanel(int panels){
@@ -76,46 +76,44 @@ public class UIManager : MonoBehaviour
         timeText.text = text;
     }
 
-    public void ChangeSide(int side){
-        switch (side){
-            case 0: 
-                currentSide = 0;
-                blackImage.sprite = sides[1];
-                redImage.sprite = sides[2];
-                break;
-            case 1:
-                currentSide = 1;
-                blackImage.sprite = sides[0];
-                redImage.sprite = sides[3];
-                break;
-            default:
-                break;
+    public void MoveFirst(int selected){
+        if(selected == 0){
+            redGoFirst = false;
+            redImage.sprite = sideSprites[0];
+            blackImage.sprite = sideSprites[3];
+        }
+        else if (selected == 1){
+            redGoFirst = true;
+            redImage.sprite = sideSprites[1];
+            blackImage.sprite = sideSprites[2];
         }
     }
 
-    public void ChangGoFirst(int goFirst){
-        currentGoFirst += goFirst;
-        if(currentGoFirst < 0){
-            currentGoFirst = 1;
-        }
-        if(currentGoFirst > 1){
-            currentGoFirst = 0;
-        }
-        
-        goFirstText.text = go[currentGoFirst];
+    public void Backward(){
+        backward = !backward;
+        backwardText.text = backward ? "ON" : "OFF";
     }
 
     public void StartPvP(){
+
+        //Time
         if(timeIndex != 0){
-            gameManager.timer = true;
-            gameManager.p1Time = int.Parse(time[timeIndex]) * 60;
-            gameManager.p2Time = int.Parse(time[timeIndex]) * 60;
+            settingManager.timer = true;
+            settingManager.p1Time = float.Parse(time[timeIndex]) * 60;
+            settingManager.p2Time = float.Parse(time[timeIndex]) * 60;
         }
         else{
-            gameManager.timer = false;
-            gameManager.p1Time = 0;
-            gameManager.p2Time = 0;
+            settingManager.timer = false;
+            settingManager.p1Time = 0;
+            settingManager.p2Time = 0;
         }
+
+        //Move First
+        settingManager.redGoFirst = redGoFirst;
+
+        //Enable Backward
+        settingManager.backward = backward;
+
         SceneManager.LoadScene("Main Scene");
     }
 }
