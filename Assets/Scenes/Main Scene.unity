@@ -349,7 +349,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &26333815
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3831,6 +3831,9 @@ MonoBehaviour:
   - {fileID: 1551882347}
   dialogPanel: {fileID: 231682420}
   dialogText: {fileID: 1715249300}
+  checkmatePanel: {fileID: 26333814}
+  checkmateText: {fileID: 245437136}
+  checkmateImage: {fileID: 118217664}
   p1Backward: {fileID: 550123756}
   p2Backward: {fileID: 443221310}
   p1Draw: {fileID: 700769215}
