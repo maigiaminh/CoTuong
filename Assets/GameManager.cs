@@ -43,7 +43,8 @@ public class GameManager : MonoBehaviour
     private float p2Time;
     private int playerPressed;
     private int actionPressed;
-
+    private bool botWait;
+    private BotAI bot;
     private void OnEnable() {
         p1Draw.onClick.AddListener(() => ButtonPress(1, 0));
         p2Draw.onClick.AddListener(() => ButtonPress(2, 0));
@@ -62,6 +63,10 @@ public class GameManager : MonoBehaviour
         p2Backward.onClick.RemoveAllListeners();
     }
 
+    void Awake(){
+        bot = gameObject.AddComponent<BotAI>();
+        bot.maxDepth = 1;
+    }
     void Start()
     {
         settingManager = FindAnyObjectByType<SettingManager>();
@@ -76,6 +81,8 @@ public class GameManager : MonoBehaviour
                 p2Backward.gameObject.SetActive(false);
             }
         }
+
+
     }
 
     void Update()
@@ -104,8 +111,14 @@ public class GameManager : MonoBehaviour
                 }
                 
 
-                UpdateTimeUI();
+                UpdateTimeUI(); 
             }
+        }
+
+        if(!boardManager.isRedTurn && !boardManager.isEndGame && !botWait){
+            Debug.Log("AI Turn");
+            botWait = true;
+            StartCoroutine(BotThinking());
         }
     }
 
@@ -130,8 +143,14 @@ public class GameManager : MonoBehaviour
         else if(pWin == 1){
             endGameText[1].text = "Player 1 win";
         }
-        else if (pWin == 2){
+        else if(pWin == 2){
             endGameText[1].text = "Player 2 win";
+        }
+        else if(pWin == 3){
+            endGameText[1].text = "Player win";
+        }
+        else if(pWin == 4){
+            endGameText[1].text = "Bot win";
         }
     }
 
@@ -156,6 +175,18 @@ public class GameManager : MonoBehaviour
 
             yield return null; 
         }
+    }
+
+    private IEnumerator BotThinking(){
+        yield return new WaitForSeconds(1f);
+        AIMove bestMove = bot.GetBestMove(boardManager.chessPieces);
+        if(bestMove != null && boardManager.isEndGame == false){
+            ChessPiece piece = boardManager.chessPieces[bestMove.StartX, bestMove.StartY];
+            boardManager.BotMoveTo(piece, bestMove.EndX, bestMove.EndY);
+        }
+        yield return new WaitForSeconds(0.5f);
+        boardManager.isRedTurn = true;
+        botWait = false;
     }
 
     public void Checkmate(){

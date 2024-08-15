@@ -14,7 +14,7 @@ public class BoardManager : MonoBehaviour
     private const int RED_ID = 0;
     private const int BLACK_ID = 1;
     private GameObject[,] board;
-    private ChessPiece[,] chessPieces;
+    public ChessPiece[,] chessPieces;
     
     //Logic
     private ChessPiece currentChooseCP;
@@ -448,7 +448,7 @@ public class BoardManager : MonoBehaviour
         return false;
     }
 
-    private bool MoveTo(ChessPiece cp, int x, int y){
+    public bool MoveTo(ChessPiece cp, int x, int y){
         Vector2Int previousPos = new Vector2Int(cp.currentX, cp.currentY);
         bool isInAvailablesMoves = false;
         ChessPiece ocp = null;
@@ -508,6 +508,39 @@ public class BoardManager : MonoBehaviour
         
         return false;
     }
+
+    public bool BotMoveTo(ChessPiece cp, int x, int y){
+        if(cp == null){
+            return false;
+        }
+        else{
+            Vector2Int previousPos = new Vector2Int(cp.currentX, cp.currentY);
+            Move move = new Move(previousPos, new Vector2Int(x, y), isRedTurn);
+
+            if(chessPieces[x, y] != null){
+                if(chessPieces[x, y].team == 0){
+                    deadReds.Add(chessPieces[x, y]);
+                    move.eliminatedPiece = chessPieces[x, y];
+                    chessPieces[x, y].gameObject.SetActive(false);
+                    chessPieces[x, y] = null;
+                }
+            }
+            
+            chessPieces[x, y] = cp;
+            chessPieces[previousPos.x, previousPos.y] = null;
+
+            PositionSinglePiece(x, y);
+
+            if(CheckForCheckmate()){
+                isEndGame = true;
+                Debug.LogWarning("Bot Win");
+                gameManager.EndGame(4);
+            }
+
+            return true;
+        }
+    }
+
 
     public void BackToPreviousMove(){
         if(moveStack.Count > 0){
