@@ -7,6 +7,8 @@
 
 🔗 **GitHub Repo:** [View Source](https://github.com/maigiaminh/CoTuong)
 
+![Mockup Screenshot](https://raw.githubusercontent.com/maigiaminh/CoTuong/main/assets/images/mockup.png)
+
 ---
 
 ## 📖 Table of Contents
@@ -39,17 +41,17 @@
 
 ### 🎮 Gameplay View
 
-![Game Screenshot](https://yourimageurl.com)
+![Game Screenshot](https://raw.githubusercontent.com/maigiaminh/CoTuong/main/assets/images/gameplay.png)
 
-### 🏆 Game History & Review
+### 🏆 Game Scenes
 
-![History Screenshot](https://yourimageurl.com)
+![Game Scenes Screenshot](https://raw.githubusercontent.com/maigiaminh/CoTuong/main/assets/images/scenes.png)
 
 ---
 
 ## 🎥 Video Demo
 
-[![Watch the video](https://img.youtube.com/vi/XYZ123456/maxresdefault.jpg)](https://www.youtube.com/watch?v=XYZ123456)
+[![Watch the video](https://img.youtube.com/vi/dGonl5UF68I/maxresdefault.jpg)](https://www.youtube.com/watch?v=dGonl5UF68I)
 
 ---
 
