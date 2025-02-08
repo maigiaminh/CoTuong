@@ -45,7 +45,7 @@
 
 ### 🏆 Game Scenes
 
-![Game Scenes Screenshot](https://raw.githubusercontent.com/maigiaminh/CoTuong/main/assets/images/scenes.png)
+![Game Scenes Screenshot](https://raw.githubusercontent.com/maigiaminh/CoTuong/main/assets/images/scene.png)
 
 ---
 
